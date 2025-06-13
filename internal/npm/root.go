@@ -102,59 +102,6 @@ func UpdatePackageJSONWithFileDep(pkgJSONPath, depName, filePath string) error {
 	return os.WriteFile(pkgJSONPath, updatedData, 0644)
 }
 
-// func UpdatePackageJSONWithFileDep(pkgJSONPath, depName, filePath string) error {
-// 	// Read existing package.json
-// 	f, err := os.ReadFile(pkgJSONPath)
-// 	if err != nil {
-// 		return fmt.Errorf("reading package.json: %w", err)
-// 	}
-
-// 	// Unmarshal to map first
-// 	var data map[string]any
-// 	if err := json.Unmarshal(f, &data); err != nil {
-// 		return err
-// 	}
-
-// 	// Marshal again to put known fields into struct
-// 	knownFields, err := json.Marshal(data)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	var pkg PackageJSON
-// 	if err := json.Unmarshal(knownFields, &pkg); err != nil {
-// 		return err
-// 	}
-
-// 	// Save extra unknown fields
-// 	pkg.Extras = make(map[string]any)
-// 	for k, v := range data {
-// 		if !isKnownPackageJSONField(k) {
-// 			pkg.Extras[k] = v
-// 		}
-// 	}
-
-// 	log.Printf("Processing field: %s", pkg.Extras)
-
-// 	// Ensure dependencies map exists
-// 	if pkg.Dependencies == nil {
-// 		pkg.Dependencies = make(map[string]string)
-// 	}
-
-// 	// Add or overwrite dependency
-// 	relPath, err := filepath.Rel(filepath.Dir(pkgJSONPath), filePath)
-// 	if err != nil {
-// 		return fmt.Errorf("calculating relative path: %w", err)
-// 	}
-// 	pkg.Dependencies[depName] = "file:" + filepath.ToSlash(relPath)
-
-// 	if err := SavePackageJSON(pkgJSONPath, &pkg); err != nil {
-// 		return fmt.Errorf("writing updated package.json: %w", err)
-// 	}
-
-// 	return nil
-// }
-
 func FindPackageJSON(workingDir string) (string, error) {
 	for {
 		p := filepath.Join(workingDir, "package.json")
@@ -169,48 +116,4 @@ func FindPackageJSON(workingDir string) (string, error) {
 		workingDir = parent
 	}
 	return "", fmt.Errorf("package.json not found")
-}
-
-func isKnownPackageJSONField(key string) bool {
-	switch key {
-	case "name", "version", "description", "main",
-		"scripts", "dependencies", "devDependencies", "peerDependencies",
-		"keywords", "author", "license":
-		return true
-	default:
-		return false
-	}
-}
-
-type PackageJSON struct {
-	Name             string            `json:"name,omitempty"`
-	Version          string            `json:"version,omitempty"`
-	Description      string            `json:"description,omitempty"`
-	License          string            `json:"license,omitempty"`
-	Main             string            `json:"main,omitempty"`
-	Scripts          map[string]string `json:"scripts,omitempty"`
-	Dependencies     map[string]string `json:"dependencies,omitempty"`
-	DevDependencies  map[string]string `json:"devDependencies,omitempty"`
-	PeerDependencies map[string]string `json:"peerDependencies,omitempty"`
-	Keywords         []string          `json:"keywords,omitempty"`
-	Author           any               `json:"author,omitempty"` // can be string or object
-
-	// This is to preserve unknown fields if needed
-	Extras map[string]any `json:"-"`
-}
-
-func SavePackageJSON(path string, pkg *PackageJSON) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")  // pretty print with 2-space indent
-	encoder.SetEscapeHTML(false) // disable escaping of &, <, >
-
-	log.Printf("%s", pkg)
-
-	return encoder.Encode(pkg)
 }
