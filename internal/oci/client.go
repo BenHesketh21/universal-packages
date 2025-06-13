@@ -28,22 +28,12 @@ func ConnectToRegistry(ref string) (*remote.Repository, error) {
 	return repo, nil
 }
 
-func PullTarball(ctx context.Context, repo *remote.Repository, ref string, destDir string) (string, error) {
-	parts := strings.Split(ref, "/")
-	if len(parts) < 1 {
-		return "", fmt.Errorf("invalid reference: %s", ref)
-	}
+func PullPackage(ctx context.Context, repo *remote.Repository, ref string, upRootDir string) (string, error) {
 
-	last := parts[len(parts)-1]
-	sub := strings.Split(last, ":")
-	if len(sub) != 2 {
-		return "", fmt.Errorf("reference must include a tag: %s", ref)
-	}
+	repositoryName := repo.Reference.Repository
 
-	name := fmt.Sprintf("%s-%s.tgz", sub[0], sub[1])
-	localPath := filepath.Join(destDir, name)
-
-	dst, err := file.New(destDir)
+	workingDir := filepath.Join(upRootDir, repositoryName)
+	dst, err := file.New(workingDir)
 	if err != nil {
 		panic(err)
 	}
@@ -53,5 +43,5 @@ func PullTarball(ctx context.Context, repo *remote.Repository, ref string, destD
 		return "", fmt.Errorf("oras pull failed: %w", err)
 	}
 
-	return localPath, nil
+	return workingDir, nil
 }
