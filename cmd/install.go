@@ -66,5 +66,7 @@ func init() {
 
 	installCmd.Flags().StringVarP(&lang, "lang", "l", "", "Package language (npm|pip|nuget)")
 	installCmd.Flags().StringVarP(&version, "version", "v", "latest", "Package version")
-	installCmd.MarkFlagRequired("lang")
+	if err := installCmd.MarkFlagRequired("lang"); err != nil {
+		log.Fatalf("could not mark 'lang' flag as required: %v", err)
+	}
 }

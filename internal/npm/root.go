@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,13 +42,21 @@ func GetPackageName(ociPath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("opening tarball: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatalf("unable to close file: %v", err)
+		}
+	}()
 
 	gzReader, err := gzip.NewReader(f)
 	if err != nil {
 		return "", fmt.Errorf("gzip reader: %w", err)
 	}
-	defer gzReader.Close()
+	defer func() {
+		if err := gzReader.Close(); err != nil {
+			log.Fatalf("unable to close file: %v", err)
+		}
+	}()
 
 	tarReader := tar.NewReader(gzReader)
 
