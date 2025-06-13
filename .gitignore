@@ -75,3 +75,6 @@ storybook-static/
 
 # Package registries
 package-examples/
+
+# Build output
+universal-packages

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/BenHesketh21/universal-packages/internal/npm"
 	"github.com/BenHesketh21/universal-packages/internal/oci"
 	"github.com/spf13/cobra"
 )
@@ -29,12 +30,34 @@ var installCmd = &cobra.Command{
 			fmt.Println("Error connecting to registry:", err)
 			os.Exit(1)
 		}
-		tarball, err := oci.PullTarball(ctx, repo, ref, "./.universal-packages")
+		workingDir, err := oci.PullPackage(ctx, repo, ref, "./.universal-packages")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("⚒️ Downloaded package to: %s\n", tarball)
+		tgzPath, err := npm.FindFirstTGZInDir(workingDir)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		packageName, err := npm.GetPackageName(tgzPath)
+		if err != nil {
+			log.Fatalf("Error getting package name: %v", err)
+			os.Exit(1)
+		}
+
+		packageJSONPath, err := npm.FindPackageJSON(".")
+		if err != nil {
+			log.Fatalf("Error finding package.json: %v", err)
+			os.Exit(1)
+		}
+
+		if err := npm.UpdatePackageJSONWithFileDep(packageJSONPath, packageName, tgzPath); err != nil {
+			log.Fatalf("Error updating package.json: %v", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("⚒️ Downloaded package to: %s\n", tgzPath)
 	},
 }
 
