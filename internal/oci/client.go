@@ -58,7 +58,11 @@ func Push(ref string, tarballPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create store: %w", err)
 	}
-	defer fs.Close()
+	defer func() {
+		if err := fs.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
+		}
+	}()
 	ctx := context.Background()
 
 	// 1. Add files to the file store

@@ -39,6 +39,8 @@ var pushCmd = &cobra.Command{
 
 func init() {
 	pushCmd.Flags().String("lang", "", "Language type (e.g., npm, pip, nuget) [required]")
-	pushCmd.MarkFlagRequired("lang")
+	if err := pushCmd.MarkFlagRequired("lang"); err != nil {
+		panic(err)
+	}
 	rootCmd.AddCommand(pushCmd)
 }
