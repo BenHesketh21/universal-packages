@@ -1,0 +1,47 @@
+version: '3'
+
+vars:
+  BINARY_NAME: universal-packages
+  OUT_DIR: bin
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the CLI tool
+    cmds:
+      - mkdir -p {{.OUT_DIR}}
+      - go build -o {{.OUT_DIR}}/{{.BINARY_NAME}} .
+
+  test:
+    desc: Run all unit tests
+    cmds:
+      - go test ./... -v
+
+  tidy:
+    desc: Clean and verify dependencies
+    cmds:
+      - go mod tidy
+      - go mod verify
+
+  lint:
+    desc: Run basic linters (go vet, staticcheck if installed)
+    cmds:
+      - golangci-lint run ./...
+  clean:
+    desc: Remove built files
+    cmds:
+      - rm -rf {{.OUT_DIR}}
+
+  run:
+    desc: Run the CLI (dev)
+    cmds:
+      - go run . --help
+
+  install:
+    desc: Install the CLI to your local Go bin
+    cmds:
+      - go install .

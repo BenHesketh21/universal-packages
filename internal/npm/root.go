@@ -126,3 +126,31 @@ func FindPackageJSON(workingDir string) (string, error) {
 	}
 	return "", fmt.Errorf("package.json not found")
 }
+
+// GetLocalPackageFile takes a package name and returns the file path from dependencies/scripts.
+func GetLocalPackageFile(pkgName string, packageJSONPath string) (string, error) {
+	data, err := os.ReadFile(packageJSONPath)
+	if err != nil {
+		return "", fmt.Errorf("reading package.json: %w", err)
+	}
+
+	var pkg struct {
+		Dependencies map[string]string `json:"dependencies"`
+	}
+
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		return "", fmt.Errorf("unmarshal package.json: %w", err)
+	}
+
+	file, ok := pkg.Dependencies[pkgName]
+	if !ok {
+		return "", fmt.Errorf("package %q not found in dependencies", pkgName)
+	}
+
+	// Expecting file:./somefile.tgz
+	if !strings.HasPrefix(file, "file:") {
+		return "", fmt.Errorf("expected local file dependency, got: %s", file)
+	}
+
+	return strings.TrimPrefix(file, "file:"), nil
+}
