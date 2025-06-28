@@ -14,17 +14,19 @@ var pushCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ref := args[0]
-		pkgName, pkgVersion := oci.GetPackageNameVersionFromRef(ref)
-		fmt.Printf("📦 Inferred package name: %s\n", pkgName)
+		packageName, packageVersion := oci.GetPackageNameVersionFromRef(ref)
+		fmt.Printf("📦 Inferred package name: %s\n", packageName)
 
-		handler, err := packages.GetHandler(cmd.Flag("lang").Value.String())
+		packageType := cmd.Flag("lang").Value.String()
+
+		handler, err := packages.GetHandler(packageType)
 		if err != nil {
-			return fmt.Errorf("unsupported language %q: %w", lang, err)
+			return fmt.Errorf("unsupported language %q: %w", packageType, err)
 		}
 
-		filePath, err := handler.LocateArtefact(".", pkgName, pkgVersion)
+		filePath, err := handler.LocatePackage(".", packageName, packageVersion)
 		if err != nil {
-			return fmt.Errorf("could not resolve file for %q: %w", pkgName, err)
+			return fmt.Errorf("could not resolve file for %q: %w", packageName, err)
 		}
 
 		err = oci.Push(ref, filePath)
@@ -38,8 +40,8 @@ var pushCmd = &cobra.Command{
 }
 
 func init() {
-	pushCmd.Flags().String("lang", "", "Language type (e.g., npm, pip, nuget) [required]")
-	if err := pushCmd.MarkFlagRequired("lang"); err != nil {
+	pushCmd.Flags().String("type", "", "Package type (e.g., npm, pip, nuget) [required]")
+	if err := pushCmd.MarkFlagRequired("type"); err != nil {
 		panic(err)
 	}
 	rootCmd.AddCommand(pushCmd)

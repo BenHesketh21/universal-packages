@@ -6,20 +6,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/BenHesketh21/universal-packages/internal/npm"
 	"github.com/BenHesketh21/universal-packages/internal/oci"
+	"github.com/BenHesketh21/universal-packages/internal/packages"
 	"github.com/spf13/cobra"
-)
-
-var (
-	lang    string
-	version string
 )
 
 // installCmd represents the install command
 var installCmd = &cobra.Command{
 	Use:   "install [package-ref]",
-	Short: "Install a language package from an OCI registry",
+	Short: "Install a package from an OCI registry",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ref := args[0]
@@ -35,38 +30,37 @@ var installCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		tgzPath, err := npm.FindFirstTGZInDir(workingDir)
-		if err != nil {
-			log.Fatal(err)
-		}
+		packageName, packageVersion := oci.GetPackageNameVersionFromRef(ref)
+		fmt.Printf("📦 Inferred package name: %s\n", packageName)
 
-		packageName, err := npm.GetPackageName(tgzPath)
+		packageType := cmd.Flag("lang").Value.String()
+
+		handler, err := packages.GetHandler(packageType)
 		if err != nil {
-			log.Fatalf("Error getting package name: %v", err)
+			log.Fatalf("unsupported type %q: %v", packageType, err)
 			os.Exit(1)
 		}
 
-		packageJSONPath, err := npm.FindPackageJSON(".")
+		filePath, err := handler.LocatePackage(workingDir, packageName, packageVersion)
 		if err != nil {
-			log.Fatalf("Error finding package.json: %v", err)
+			log.Fatalf("could not resolve file for %q: %v", packageName, err)
 			os.Exit(1)
 		}
 
-		if err := npm.UpdatePackageJSONWithFileDep(packageJSONPath, packageName, tgzPath); err != nil {
-			log.Fatalf("Error updating package.json: %v", err)
+		if err := handler.UpdatePackageRef(packageName, filePath); err != nil {
+			log.Fatalf("error updating package reference: %v", err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("⚒️ Downloaded package to: %s\n", tgzPath)
+		fmt.Printf("⚒️ Downloaded package to: %s\n", filePath)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(installCmd)
 
-	installCmd.Flags().StringVarP(&lang, "lang", "l", "", "Package language (npm|pip|nuget)")
-	installCmd.Flags().StringVarP(&version, "version", "v", "latest", "Package version")
-	if err := installCmd.MarkFlagRequired("lang"); err != nil {
-		log.Fatalf("could not mark 'lang' flag as required: %v", err)
+	installCmd.Flags().String("type", "", "Package type (npm|pip|nuget)")
+	if err := installCmd.MarkFlagRequired("type"); err != nil {
+		log.Fatalf("could not mark 'type' flag as required: %v", err)
 	}
 }
