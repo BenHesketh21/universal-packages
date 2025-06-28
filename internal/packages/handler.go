@@ -5,7 +5,13 @@ import (
 )
 
 type PackageHandler interface {
-	LocateArtefact(dir string, packageName string, packageVersion string) (string, error)
+	// LocatePackage finds the package file in the specified directory
+	// based on the package name and version.
+	// Returns the file path if found, or an error if not.
+	LocatePackage(dir string, packageName string, packageVersion string) (string, error)
+	// UpdatePackageRef updates the package reference in the project's
+	// package file (e.g., package.json for npm) to point to the local file
+	UpdatePackageRef(packageName string, packageFilePath string) error
 }
 
 // Registry of supported handlers by name

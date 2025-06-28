@@ -78,4 +78,4 @@ package-examples/
 
 # Build output
 universal-packages
-./bin
+bin/**
