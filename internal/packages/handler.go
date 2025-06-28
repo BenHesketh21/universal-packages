@@ -11,7 +11,7 @@ type PackageHandler interface {
 	LocatePackage(dir string, packageName string, packageVersion string) (string, error)
 	// UpdatePackageRef updates the package reference in the project's
 	// package file (e.g., package.json for npm) to point to the local file
-	UpdatePackageRef(packageName string, packageFilePath string) error
+	UpdatePackageRef(packageName string, packageFilePath string, packageRefFilePath string) error
 }
 
 // Registry of supported handlers by name
