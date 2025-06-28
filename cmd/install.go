@@ -47,7 +47,7 @@ var installCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if err := handler.UpdatePackageRef(packageName, filePath); err != nil {
+		if err := handler.UpdatePackageRef(packageName, filePath, "."); err != nil {
 			log.Fatalf("error updating package reference: %v", err)
 			os.Exit(1)
 		}

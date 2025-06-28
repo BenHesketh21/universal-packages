@@ -79,3 +79,6 @@ package-examples/
 # Build output
 universal-packages
 bin/**
+
+# test files
+testdata/

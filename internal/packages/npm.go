@@ -32,9 +32,9 @@ func (n *NpmHandler) LocatePackage(dir string, packageName string, packageVersio
 // UpdatePackageRef updates the package reference in the project's package.json to point to the local file path.
 // It adds or updates the dependency entry for the specified package.
 // It should maintain existing format of package.json, including any existing dependencies.
-func (n *NpmHandler) UpdatePackageRef(packageName string, packageFilePath string) error {
+func (n *NpmHandler) UpdatePackageRef(packageName string, packageFilePath string, packageRefFilePath string) error {
 	// Read entire file as bytes
-	pkgJSONPath, err := FindPackageJSON(".")
+	pkgJSONPath, err := FindPackageJSON(packageRefFilePath)
 	if err != nil {
 		return fmt.Errorf("finding package.json: %w", err)
 	}
