@@ -1,6 +1,6 @@
 # Universal Packages
 
-**Universal Packages** is a CLI tool for pushing and pulling private code packages using [OCI (Open Container Initiative)](https://opencontainers.org/) registries. It provides a language-agnostic, decentralized, and standardized way to distribute private SDKs and packages across teams and ecosystems.
+**Universal Packages** is a CLI tool for pushing and pulling private code packages using [OCI (Open Container Initiative)](https://opencontainers.org/) registries. It provides a ecosystem-agnostic, decentralized, and standardized way to distribute private SDKs and packages across teams and ecosystems.
 
 > 🔧 Currently supports **npm** packages. Future support for pip, NuGet, and Go is planned.
 
@@ -8,9 +8,9 @@
 
 ## ✨ Goals
 
-- ✅ Support for installing and publishing private packages across languages.
+- ✅ Support for installing and publishing private packages across ecosystems.
 - ✅ Use standard OCI registries (e.g. GitHub, AWS, Azure).
-- ✅ Minimal language-specific logic; rely on established package formats.
+- ✅ Minimal ecosystem-specific logic; rely on established package formats.
 - ✅ Reproducible and interoperable workflows.
 
 ---

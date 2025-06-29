@@ -5,7 +5,7 @@ upkg push ghcr.io/org/my-package:tag
 
 This will:
 
-1. Locate your packaged code (language specific).
+1. Locate your packaged code (ecosystem specific).
 
 2. Create an OCI artifact with the correct format.
 

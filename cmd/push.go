@@ -26,7 +26,7 @@ var pushCmd = &cobra.Command{
 
 		handler, err := packages.GetHandler(packageType)
 		if err != nil {
-			return fmt.Errorf("unsupported language %q: %w", packageType, err)
+			return fmt.Errorf("unsupported type %q: %w", packageType, err)
 		}
 
 		filePath, err := handler.LocatePackage(".", packageName, packageVersion)
