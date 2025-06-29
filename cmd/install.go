@@ -31,12 +31,28 @@ var installCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		packageName, packageVersion, err := oci.GetPackageNameVersionFromRef(ref)
-		if err != nil {
-			log.Fatalf("could not parse package reference %q: %v", ref, err)
-			os.Exit(1)
+		packageName := cmd.Flag("package-name").Value.String()
+		packageVersion := cmd.Flag("package-version").Value.String()
+
+		inferredPackageName := ""
+		inferredPackageVersion := ""
+		if packageName == "" || packageVersion == "" {
+			inferredPackageName, inferredPackageVersion, err = oci.GetPackageNameVersionFromRef(ref)
+			if err != nil {
+				log.Fatalf("could not parse package reference %q: %v", ref, err)
+				os.Exit(1)
+			}
 		}
-		fmt.Printf("📦 Inferred package name: %s\n", packageName)
+
+		if packageName == "" {
+			packageName = inferredPackageName
+			fmt.Printf("📦 Inferred package name: %s\n", packageName)
+		}
+
+		if packageVersion == "" {
+			packageVersion = inferredPackageVersion
+			fmt.Printf("📦 Inferred package version: %s\n", packageVersion)
+		}
 
 		packageType := cmd.Flag("type").Value.String()
 
@@ -68,4 +84,6 @@ func init() {
 	if err := installCmd.MarkFlagRequired("type"); err != nil {
 		log.Fatalf("could not mark 'type' flag as required: %v", err)
 	}
+	installCmd.Flags().String("package-name", "", "Name of the package to install, inferred from the package reference if not provided")
+	installCmd.Flags().String("package-version", "", "Version of the package to install, inferred from the package reference if not provided")
 }
