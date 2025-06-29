@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Use:   "universal-packages",
 	Short: "A brief description of your application",
 	Long: `Universal Packages CLI is a tool to manage and install packages from OCI registries.
-It allows you to pull packages, install them, and manage dependencies across different languages and platforms.`,
+It allows you to pull packages, install them, and manage dependencies across different ecosystems and platforms.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

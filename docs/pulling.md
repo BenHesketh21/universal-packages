@@ -10,6 +10,6 @@ This will:
 
 2. Extract the contents into a known local format.
 
-3. Update your local project to reference the pulled package (language-specific).
+3. Update your local project to reference the pulled package (ecosystem-specific).
 
-See [languages](./languages) for language-specific integration details.
+See [ecosystems](./ecosystems) for ecosystem-specific integration details.

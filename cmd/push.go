@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/BenHesketh21/universal-packages/internal/oci"
 	"github.com/BenHesketh21/universal-packages/internal/packages"
@@ -16,17 +18,35 @@ var pushCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ref := args[0]
 		ctx := context.Background()
-		packageName, packageVersion, err := oci.GetPackageNameVersionFromRef(ref)
-		if err != nil {
-			return fmt.Errorf("could not parse package reference %q: %w", ref, err)
+		packageName := cmd.Flag("package-name").Value.String()
+		packageVersion := cmd.Flag("package-version").Value.String()
+
+		inferredPackageName := ""
+		inferredPackageVersion := ""
+		err := error(nil)
+		if packageName == "" || packageVersion == "" {
+			inferredPackageName, inferredPackageVersion, err = oci.GetPackageNameVersionFromRef(ref)
+			if err != nil {
+				log.Fatalf("could not parse package reference %q: %v", ref, err)
+				os.Exit(1)
+			}
 		}
-		fmt.Printf("📦 Inferred package name: %s\n", packageName)
+
+		if packageName == "" {
+			packageName = inferredPackageName
+			fmt.Printf("📦 Inferred package name: %s\n", packageName)
+		}
+
+		if packageVersion == "" {
+			packageVersion = inferredPackageVersion
+			fmt.Printf("📦 Inferred package version: %s\n", packageVersion)
+		}
 
 		packageType := cmd.Flag("type").Value.String()
 
 		handler, err := packages.GetHandler(packageType)
 		if err != nil {
-			return fmt.Errorf("unsupported language %q: %w", packageType, err)
+			return fmt.Errorf("unsupported type %q: %w", packageType, err)
 		}
 
 		filePath, err := handler.LocatePackage(".", packageName, packageVersion)
@@ -49,5 +69,7 @@ func init() {
 	if err := pushCmd.MarkFlagRequired("type"); err != nil {
 		panic(err)
 	}
+	pushCmd.Flags().String("package-name", "", "Name of the package to install, inferred from the package reference if not provided")
+	pushCmd.Flags().String("package-version", "", "Version of the package to install, inferred from the package reference if not provided")
 	rootCmd.AddCommand(pushCmd)
 }

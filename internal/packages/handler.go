@@ -21,9 +21,9 @@ var handlers = map[string]PackageHandler{
 	// Add more here
 }
 
-func GetHandler(lang string) (PackageHandler, error) {
-	if h, ok := handlers[lang]; ok {
+func GetHandler(packageType string) (PackageHandler, error) {
+	if h, ok := handlers[packageType]; ok {
 		return h, nil
 	}
-	return nil, fmt.Errorf("unsupported language: %s", lang)
+	return nil, fmt.Errorf("unsupported package type: %s", packageType)
 }
