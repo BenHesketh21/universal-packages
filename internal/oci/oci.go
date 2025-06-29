@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -34,7 +33,7 @@ func ConnectToRegistry(ref string) (*remote.Repository, error) {
 	return repo, nil
 }
 
-func PullPackage(ctx context.Context, repo *remote.Repository, ref string, upRootDir string) (string, error) {
+func Pull(ctx context.Context, client OrasClient, repo *remote.Repository, ref string, upRootDir string) (string, error) {
 
 	repositoryName := repo.Reference.Repository
 
@@ -43,8 +42,7 @@ func PullPackage(ctx context.Context, repo *remote.Repository, ref string, upRoo
 	if err != nil {
 		panic(err)
 	}
-
-	_, err = oras.Copy(ctx, repo, ref, dst, "", oras.DefaultCopyOptions)
+	_, err = client.Copy(ctx, repo, ref, dst, "", oras.DefaultCopyOptions)
 	if err != nil {
 		return "", fmt.Errorf("oras pull failed: %w", err)
 	}
@@ -52,7 +50,7 @@ func PullPackage(ctx context.Context, repo *remote.Repository, ref string, upRoo
 	return workingDir, nil
 }
 
-func Push(ref string, tarballPath string) error {
+func Push(ctx context.Context, orasClient OrasClient, ref string, tarballPath string) error {
 	// 0. Create a file store
 	fs, err := file.New("")
 	if err != nil {
@@ -63,10 +61,12 @@ func Push(ref string, tarballPath string) error {
 			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
 		}
 	}()
-	ctx := context.Background()
 
 	// 1. Add files to the file store
-	fileName := getBaseName(tarballPath)
+	fileName, err := getBaseName(tarballPath)
+	if err != nil {
+		return fmt.Errorf("failed to get base name from tarball path: %w", err)
+	}
 	mediaType := "application/vnd.test.file"
 	fileDescriptors := make([]v1.Descriptor, 0, 1)
 	fileDescriptor, err := fs.Add(ctx, fileName, mediaType, tarballPath)
@@ -109,7 +109,7 @@ func Push(ref string, tarballPath string) error {
 	}
 
 	// 4. Copy from the file store to the remote repository
-	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
+	_, err = orasClient.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
 		return fmt.Errorf("failed to push: %w", err)
 	}
@@ -118,16 +118,52 @@ func Push(ref string, tarballPath string) error {
 }
 
 // Utility function to extract filename from path
-func getBaseName(path string) string {
+func getBaseName(path string) (string, error) {
 	if stat, err := os.Stat(path); err == nil && !stat.IsDir() {
-		return stat.Name()
+		return stat.Name(), nil
 	}
-	return "package.tgz"
+	return "", fmt.Errorf("no file found: %s", path)
 }
 
-func GetPackageNameVersionFromRef(ref string) (string, string) {
-	trimmed := strings.Split(ref, "@")[0]
-	repo := strings.Split(trimmed, ":")[0]
-	tag := strings.Split(trimmed, ":")[1]
-	return path.Base(repo), tag
+func GetPackageNameVersionFromRef(ref string) (string, string, error) {
+	if ref == "" {
+		return "", "", fmt.Errorf("empty reference")
+	}
+
+	// Default tag if not explicitly provided
+	tag := "latest"
+	path := ref
+
+	// Check if a tag is specified
+	lastColon := strings.LastIndex(ref, ":")
+	if lastColon == -1 {
+		return "", "", fmt.Errorf("missing tag in reference: %s", ref)
+	}
+	lastSlash := strings.LastIndex(ref, "/")
+
+	if lastColon > lastSlash {
+		// colon after last slash -> it's a tag
+		path = ref[:lastColon]
+		tag = ref[lastColon+1:]
+	}
+
+	// Split host from repo path
+	slashParts := strings.SplitN(path, "/", 3)
+
+	repoName := ""
+	if len(slashParts) == 2 {
+		// No org, just repo name
+		repoName = slashParts[1]
+	} else if len(slashParts) == 3 {
+		// Org/repo format
+		repoName = slashParts[2]
+	} else {
+		return "", "", fmt.Errorf("invalid reference format: %s", ref)
+	}
+
+	if repoName == "" || tag == "" {
+		return "", "", fmt.Errorf("invalid reference format: %s", ref)
+	}
+
+	return repoName, tag, nil
 }
