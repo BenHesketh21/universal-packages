@@ -29,11 +29,30 @@ func ConnectToRegistry(ref string) (*remote.Repository, error) {
 
 	// This enables credential helpers (Docker config, GitHub token, etc.)
 	repo.PlainHTTP = false // Set true for local or insecure registries
+	// Set up Docker-compatible credential store
+	// 3. Connect to a remote repository
+
+	storeOpts := credentials.StoreOptions{}
+	credStore, err := credentials.NewStoreFromDocker(storeOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	repo.Client = &auth.Client{
+		Client:     retry.DefaultClient,
+		Cache:      auth.NewCache(),
+		Credential: credentials.Credential(credStore),
+	}
 
 	return repo, nil
 }
 
-func Pull(ctx context.Context, client OrasClient, repo *remote.Repository, ref string, upRootDir string) (string, error) {
+func Pull(ctx context.Context, client OrasClient, ref string, upRootDir string) (string, error) {
+
+	repo, err := ConnectToRegistry(ref)
+	if err != nil {
+		return "", fmt.Errorf("failed to connect to registry: %w", err)
+	}
 
 	repositoryName := repo.Reference.Repository
 
@@ -85,22 +104,9 @@ func Push(ctx context.Context, orasClient OrasClient, ref string, tarballPath st
 		return fmt.Errorf("failed to pack manifest: %w", err)
 	}
 
-	// 3. Connect to a remote repository
-	repo, err := remote.NewRepository(ref)
+	repo, err := ConnectToRegistry(ref)
 	if err != nil {
-		return fmt.Errorf("failed to parse ref: %w", err)
-	}
-
-	storeOpts := credentials.StoreOptions{}
-	credStore, err := credentials.NewStoreFromDocker(storeOpts)
-	if err != nil {
-		panic(err)
-	}
-
-	repo.Client = &auth.Client{
-		Client:     retry.DefaultClient,
-		Cache:      auth.NewCache(),
-		Credential: credentials.Credential(credStore),
+		return fmt.Errorf("failed to connect to registry: %w", err)
 	}
 
 	tag := repo.Reference.Reference

@@ -44,12 +44,7 @@ func TestPull(t *testing.T) {
 			client := &FakeOrasClient{}
 			ctx := context.Background()
 
-			repo, err := ConnectToRegistry(testCase.ref)
-			if err != nil {
-				t.Fatalf("failed to connect to registry: %v", err)
-			}
-
-			workingDir, err := Pull(ctx, client, repo, "", "./.universal-packages")
+			workingDir, err := Pull(ctx, client, testCase.ref, "./.universal-packages")
 			if err != nil {
 				t.Fatalf("failed to pull package: %v", err)
 			}

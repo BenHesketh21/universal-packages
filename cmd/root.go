@@ -11,7 +11,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "universal-packages",
+	Use:   "upkg",
 	Short: "A brief description of your application",
 	Long: `Universal Packages CLI is a tool to manage and install packages from OCI registries.
 It allows you to pull packages, install them, and manage dependencies across different ecosystems and platforms.`,

@@ -20,15 +20,10 @@ var installCmd = &cobra.Command{
 		ref := args[0]
 		ctx := context.Background()
 		fmt.Println("🧰 Pulling", ref)
-		repo, err := oci.ConnectToRegistry(ref)
-		if err != nil {
-			fmt.Println("Error connecting to registry:", err)
-			os.Exit(1)
-		}
 		client := &oci.OrasClientImpl{}
-		workingDir, err := oci.Pull(ctx, client, repo, ref, "./.universal-packages")
+		workingDir, err := oci.Pull(ctx, client, ref, "./.universal-packages")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("could not pull OCI artefact %q: %v", ref, err)
 		}
 
 		packageName := cmd.Flag("package-name").Value.String()
