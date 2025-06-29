@@ -25,15 +25,20 @@ var installCmd = &cobra.Command{
 			fmt.Println("Error connecting to registry:", err)
 			os.Exit(1)
 		}
-		workingDir, err := oci.PullPackage(ctx, repo, ref, "./.universal-packages")
+		client := &oci.OrasClientImpl{}
+		workingDir, err := oci.Pull(ctx, client, repo, ref, "./.universal-packages")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		packageName, packageVersion := oci.GetPackageNameVersionFromRef(ref)
+		packageName, packageVersion, err := oci.GetPackageNameVersionFromRef(ref)
+		if err != nil {
+			log.Fatalf("could not parse package reference %q: %v", ref, err)
+			os.Exit(1)
+		}
 		fmt.Printf("📦 Inferred package name: %s\n", packageName)
 
-		packageType := cmd.Flag("lang").Value.String()
+		packageType := cmd.Flag("type").Value.String()
 
 		handler, err := packages.GetHandler(packageType)
 		if err != nil {

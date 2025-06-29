@@ -34,18 +34,21 @@ func TestLocatePackage(t *testing.T) {
 	}
 
 	testCases := []struct {
+		name           string
 		packageName    string
 		packageVersion string
 		expectedPath   string
 		expectedError  bool
 	}{
 		{
+			name:           "find existing package",
 			packageName:    "lodash",
 			packageVersion: "4.17.21",
 			expectedPath:   filepath.Join(tempDir, "lodash-4.17.21.tgz"),
 			expectedError:  false,
 		},
 		{
+			name:           "fail on non-existing package",
 			packageName:    "nonexistent-package",
 			packageVersion: "1.0.0",
 			expectedPath:   "",

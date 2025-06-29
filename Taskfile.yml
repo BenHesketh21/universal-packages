@@ -21,6 +21,11 @@ tasks:
     cmds:
       - go test ./... -v
 
+  ftest:
+    desc: Run all unit tests
+    cmds:
+      - go test ./... -v -failfast
+
   tidy:
     desc: Clean and verify dependencies
     cmds:

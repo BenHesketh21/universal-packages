@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/BenHesketh21/universal-packages/internal/oci"
@@ -14,10 +15,14 @@ var pushCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ref := args[0]
-		packageName, packageVersion := oci.GetPackageNameVersionFromRef(ref)
+		ctx := context.Background()
+		packageName, packageVersion, err := oci.GetPackageNameVersionFromRef(ref)
+		if err != nil {
+			return fmt.Errorf("could not parse package reference %q: %w", ref, err)
+		}
 		fmt.Printf("📦 Inferred package name: %s\n", packageName)
 
-		packageType := cmd.Flag("lang").Value.String()
+		packageType := cmd.Flag("type").Value.String()
 
 		handler, err := packages.GetHandler(packageType)
 		if err != nil {
@@ -28,8 +33,8 @@ var pushCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("could not resolve file for %q: %w", packageName, err)
 		}
-
-		err = oci.Push(ref, filePath)
+		client := &oci.OrasClientImpl{}
+		err = oci.Push(ctx, client, ref, filePath)
 		if err != nil {
 			return fmt.Errorf("push failed: %w", err)
 		}
