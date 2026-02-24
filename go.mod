@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/opencontainers/image-spec v1.1.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/tidwall/sjson v1.2.5
 	oras.land/oras-go/v2 v2.6.0
 )
