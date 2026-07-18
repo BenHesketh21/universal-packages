@@ -1,12 +1,12 @@
 module github.com/BenHesketh21/universal-packages
 
-go 1.24.4
+go 1.25.0
 
 require (
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/spf13/cobra v1.10.2
 	github.com/tidwall/sjson v1.2.5
-	oras.land/oras-go/v2 v2.6.0
+	oras.land/oras-go/v2 v2.6.2
 )
 
 require (
@@ -16,5 +16,5 @@ require (
 	github.com/tidwall/gjson v1.14.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
 )
